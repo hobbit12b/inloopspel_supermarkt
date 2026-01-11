@@ -1,1 +1,519 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boodschappen doen - Digibord spel</title>
+  <style>
+    :root {
+      --blue: #1f7bdc;
+      --red: #e23b3b;
+      --dark: #1b1b1b;
+      --light: #f7f7fb;
+      --path: #c7c7c7;
+      --green: #2b8a3e;
+    }
 
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--dark);
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 24px 48px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 36px;
+      letter-spacing: 1px;
+    }
+
+    .instructions {
+      margin: 8px 0 24px;
+      font-size: 16px;
+      line-height: 1.5;
+      max-width: 860px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(31, 123, 220, 0.24);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .dice {
+      width: 64px;
+      height: 64px;
+      border: 3px solid var(--dark);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .status {
+      font-size: 18px;
+      padding: 10px 16px;
+      background: var(--light);
+      border-radius: 10px;
+      border: 1px solid #e2e2ee;
+    }
+
+    .board {
+      position: relative;
+      background: #fff;
+      border-radius: 18px;
+      border: 2px solid #ececf3;
+      padding: 16px;
+      min-height: 520px;
+      overflow: hidden;
+    }
+
+    .path-dot {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3px solid var(--path);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: #9a9a9a;
+      transform: translate(-50%, -50%);
+    }
+
+    .path-dot.start {
+      border-color: var(--red);
+    }
+
+    .path-dot.finish {
+      border-color: var(--green);
+    }
+
+    .pawn {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      top: 0;
+      left: 0;
+      border-radius: 50%;
+      background: var(--red);
+      border: 3px solid #fff;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+      transition: left 0.4s ease, top 0.4s ease;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      transform: translate(-50%, -50%);
+    }
+
+    .home {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 300px;
+    }
+
+    .home-slot {
+      border: 3px solid var(--blue);
+      border-radius: 8px;
+      height: 70px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    .home-slot.filled {
+      background: #e9f2ff;
+      font-weight: 600;
+    }
+
+    .scene {
+      position: absolute;
+      bottom: 26px;
+      left: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .scene-card {
+      background: #fff3d6;
+      border-radius: 12px;
+      padding: 12px 16px;
+      border: 2px dashed #f1c969;
+      width: 220px;
+    }
+
+    .scene-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .scene-card p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .shelf {
+      background: #e9f7ef;
+      border-radius: 12px;
+      padding: 14px 16px;
+      width: 260px;
+      border: 2px dashed #7fc99b;
+    }
+
+    .shelf h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .item-button {
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #ffffff;
+      border: 2px solid #cde9d7;
+    }
+
+    .item-button:hover {
+      border-color: var(--green);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      width: min(520px, 100%);
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal h2 {
+      margin-top: 0;
+    }
+
+    .modal-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .modal-items button {
+      border: 2px solid var(--blue);
+      background: #f1f7ff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .modal-items button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .win {
+      color: var(--green);
+      font-weight: 700;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .home {
+        position: static;
+        width: 100%;
+      }
+
+      .board {
+        padding-bottom: 220px;
+      }
+
+      .scene {
+        position: static;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>BOODSCHAPPEN DOEN</h1>
+      <div class="dice" id="dice">?</div>
+    </header>
+
+    <p class="instructions">
+      Zet een pion op de rode stip aan het begin van het pad. Breng de boodschappen naar huis
+      door te dobbelen. Verzet de pion het aantal cirkels gelijk aan het gegooide aantal ogen.
+      Als je aan het eind van het pad bent gekomen, mag je de boodschappen uitpakken en een levensmiddel
+      in een blauw vak leggen. Ga door tot je drie producten thuis hebt gebracht.
+    </p>
+
+    <div class="controls">
+      <button class="button" id="rollButton">Dobbel 🎲</button>
+      <button class="button" id="resetButton">Opnieuw starten</button>
+      <div class="status" id="status">Klik op “Dobbel” om te beginnen.</div>
+    </div>
+
+    <section class="board" id="board">
+      <div class="home" id="homeSlots">
+        <div class="home-slot">Leeg</div>
+        <div class="home-slot">Leeg</div>
+        <div class="home-slot">Leeg</div>
+      </div>
+
+      <div class="pawn" id="pawn">🐾</div>
+
+      <div class="scene">
+        <div class="scene-card">
+          <h3>Thuis</h3>
+          <p>Leg hier 3 producten neer als je bent aangekomen.</p>
+        </div>
+        <div class="shelf">
+          <h3>Supermarkt</h3>
+          <div class="item-grid" id="quickItems"></div>
+        </div>
+      </div>
+
+      <div class="overlay" id="overlay">
+        <div class="modal">
+          <h2>Kies een boodschap voor thuis</h2>
+          <p>Selecteer één product om in een blauw vak te leggen.</p>
+          <div class="modal-items" id="modalItems"></div>
+          <p class="win" id="winMessage"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const pawn = document.getElementById("pawn");
+    const dice = document.getElementById("dice");
+    const status = document.getElementById("status");
+    const rollButton = document.getElementById("rollButton");
+    const resetButton = document.getElementById("resetButton");
+    const overlay = document.getElementById("overlay");
+    const modalItems = document.getElementById("modalItems");
+    const winMessage = document.getElementById("winMessage");
+    const homeSlots = Array.from(document.querySelectorAll(".home-slot"));
+    const quickItems = document.getElementById("quickItems");
+
+    const items = [
+      "🍎 Appel",
+      "🥖 Brood",
+      "🥛 Melk",
+      "🧀 Kaas",
+      "🍌 Banaan",
+      "🥕 Wortel",
+      "🥫 Soep",
+      "🍓 Aardbei",
+      "🥔 Aardappel",
+    ];
+
+    const path = [
+      [10, 70], [15, 66], [20, 62], [25, 58], [30, 54], [35, 50],
+      [40, 46], [45, 42], [50, 38], [55, 34], [60, 30], [66, 26],
+      [72, 24], [78, 24], [84, 26], [88, 30], [90, 36], [90, 42],
+      [88, 48], [84, 52], [78, 54], [72, 54], [66, 52], [60, 48],
+      [54, 44], [48, 40], [42, 38], [36, 38], [30, 40], [24, 44],
+      [20, 48], [18, 54], [18, 60], [20, 66], [24, 70], [30, 72],
+      [36, 72], [42, 70], [48, 68], [54, 66], [60, 64], [66, 64],
+      [72, 66], [78, 70], [82, 74], [84, 78], [84, 82], [82, 86],
+      [78, 90], [72, 92]
+    ];
+
+    let position = 0;
+    let delivered = 0;
+    let gameOver = false;
+
+    function createDots() {
+      path.forEach((coords, index) => {
+        const dot = document.createElement("div");
+        dot.className = "path-dot";
+        if (index === 0) {
+          dot.classList.add("start");
+          dot.textContent = "Start";
+        }
+        if (index === path.length - 1) {
+          dot.classList.add("finish");
+          dot.textContent = "Einde";
+        }
+        dot.style.left = `${coords[0]}%`;
+        dot.style.top = `${coords[1]}%`;
+        board.appendChild(dot);
+      });
+    }
+
+    function updatePawn() {
+      const [x, y] = path[position];
+      pawn.style.left = `${x}%`;
+      pawn.style.top = `${y}%`;
+    }
+
+    function rollDice() {
+      if (gameOver) {
+        status.textContent = "Je hebt al gewonnen! Klik op ‘Opnieuw starten’.";
+        return;
+      }
+      const roll = Math.floor(Math.random() * 6) + 1;
+      dice.textContent = roll;
+      status.textContent = `Je gooide ${roll}.`;
+      position = Math.min(position + roll, path.length - 1);
+      updatePawn();
+
+      if (position === path.length - 1) {
+        status.textContent = "Je bent thuis! Kies een product om uit te pakken.";
+        openModal();
+      }
+    }
+
+    function openModal() {
+      overlay.classList.add("active");
+      rollButton.disabled = true;
+      renderModalItems();
+    }
+
+    function closeModal() {
+      overlay.classList.remove("active");
+      rollButton.disabled = false;
+    }
+
+    function renderModalItems() {
+      modalItems.innerHTML = "";
+      items.forEach((item) => {
+        const button = document.createElement("button");
+        button.textContent = item;
+        button.disabled = homeSlots.some((slot) => slot.textContent === item);
+        button.addEventListener("click", () => addItem(item));
+        modalItems.appendChild(button);
+      });
+    }
+
+    function addItem(item) {
+      const slot = homeSlots[delivered];
+      slot.textContent = item;
+      slot.classList.add("filled");
+      delivered += 1;
+      position = 0;
+      updatePawn();
+      closeModal();
+      status.textContent = "Ga terug naar de supermarkt en dobbel opnieuw.";
+
+      if (delivered >= 3) {
+        gameOver = true;
+        winMessage.textContent = "Gefeliciteerd! Alle boodschappen zijn thuis.";
+        status.textContent = "Je hebt gewonnen!";
+        overlay.classList.add("active");
+        rollButton.disabled = true;
+      }
+    }
+
+    function resetGame() {
+      position = 0;
+      delivered = 0;
+      gameOver = false;
+      dice.textContent = "?";
+      status.textContent = "Klik op ‘Dobbel’ om te beginnen.";
+      winMessage.textContent = "";
+      rollButton.disabled = false;
+      overlay.classList.remove("active");
+      homeSlots.forEach((slot) => {
+        slot.textContent = "Leeg";
+        slot.classList.remove("filled");
+      });
+      updatePawn();
+    }
+
+    function renderQuickItems() {
+      quickItems.innerHTML = "";
+      items.slice(0, 6).forEach((item) => {
+        const button = document.createElement("button");
+        button.className = "item-button";
+        button.textContent = item;
+        button.addEventListener("click", () => {
+          status.textContent = `${item} ligt klaar voor als je thuis bent.`;
+        });
+        quickItems.appendChild(button);
+      });
+    }
+
+    rollButton.addEventListener("click", rollDice);
+    resetButton.addEventListener("click", resetGame);
+
+    createDots();
+    updatePawn();
+    renderQuickItems();
+  </script>
+</body>
+</html>
